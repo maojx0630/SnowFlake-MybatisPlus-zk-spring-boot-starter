@@ -15,4 +15,4 @@ zk:
 调用IdUtils的next或nextStr即可,或使用mybatisPlus 的IdWork亦可
 ##注意
 * 若启动时zk不可用,且开启探测则会使用默认workerId,dataCenterId
-* 所有配置信息见ZookeeperConfig.java
+* [所有配置信息](https://github.com/maojx0630/SnowFlake-MybatisPlus-zk-spring-boot-starter/blob/master/src/main/java/com/github/maojx0630/snowFlakeZk/ZookeeperConfig.java)
