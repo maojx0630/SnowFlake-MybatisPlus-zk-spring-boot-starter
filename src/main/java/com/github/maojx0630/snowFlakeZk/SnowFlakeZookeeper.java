@@ -41,6 +41,7 @@ public class SnowFlakeZookeeper {
 			workerId=config.getDefaultWorkerId();
 			dataCenterId=config.getDefaultDataCenterId();
 			IdUtils.initSequence(workerId,dataCenterId);
+			log.error("zk连接失败,使用默认参数初始化,若非集群模式请取消zk获取改为固定值,目前workerID为[{}],dataCenterId为[{}]", workerId, dataCenterId);
 			return;
 		}
 		//初始化zk操作工具
