@@ -2,6 +2,7 @@ package com.github.maojx0630.snowFlakeZk;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -68,32 +69,35 @@ public class SnowFlakeZookeeper {
 		IdUtils.initSequence(workerId,dataCenterId);
 		//添加连接监听,处理zk断开的意外情况
 		client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
+
 			if (connectionState.isConnected()) {
-				try {
-					String path = config.getRoot() + "/" + dataCenterId + "-" + workerId;
-					String str = new String(client.getData().forPath(path), StandardCharsets.UTF_8);
-					if (str.equals(uuid)) {
-						try {
-							client.delete().forPath(path);
-							log.info("zk连接已恢复,zk存储信息比对成功,即将移除并重新注册");
-						} catch (Exception ignored) {
-						}
-					}
-					client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
-					log.info("zk连接已恢复并重新将当前信息注册,目前workerID为[{}],dataCenterId为[{}]", workerId, dataCenterId);
-				} catch (KeeperException.NodeExistsException | KeeperException.NoNodeException exception) {
+				if (ConnectionState.RECONNECTED == connectionState) {
 					try {
-						log.info("zk连接已恢复,但当前节点信息已被占用,或已被清除将重新注册");
-						workerId = 0;
-						dataCenterId = 0;
-						initWorkIdAndCenterId();
-						IdUtils.initSequence(workerId,dataCenterId);
-						log.info("重新注册,并重新初始化雪花信息成功,目前workerID为[{}],dataCenterId为[{}]", workerId, dataCenterId);
+						String path = config.getRoot() + "/" + dataCenterId + "-" + workerId;
+						String str = new String(client.getData().forPath(path), StandardCharsets.UTF_8);
+						if (str.equals(uuid)) {
+							try {
+								client.delete().forPath(path);
+								log.info("zk连接已恢复,zk存储信息比对成功,即将移除并重新注册");
+							} catch (Exception ignored) {
+							}
+						}
+						client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
+						log.info("zk连接已恢复并重新将当前信息注册,目前workerID为[{}],dataCenterId为[{}]", workerId, dataCenterId);
+					} catch (KeeperException.NodeExistsException | KeeperException.NoNodeException exception) {
+						try {
+							log.info("zk连接已恢复,但当前节点信息已被占用,或已被清除将重新注册");
+							workerId = 0;
+							dataCenterId = 0;
+							initWorkIdAndCenterId();
+							IdUtils.initSequence(workerId,dataCenterId);
+							log.info("重新注册,并重新初始化雪花信息成功,目前workerID为[{}],dataCenterId为[{}]", workerId, dataCenterId);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			} else {
 				log.error("zk连接已断开!!!!");

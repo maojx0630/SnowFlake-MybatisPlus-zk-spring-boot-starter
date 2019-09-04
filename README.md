@@ -4,7 +4,7 @@
 <dependency>
    <groupId>com.github.maojx0630</groupId>
    <artifactId>SnowFlake-MybatisPlus-zk-spring-boot-starter</artifactId>
-   <version>0.3</version>
+   <version>0.4</version>
 </dependency>
 ```
 配置zk地址
